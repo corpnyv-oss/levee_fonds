@@ -1,0 +1,12 @@
+[flake8]
+# Ignorer les avertissements dans les packages installés
+exclude = .git,__pycache__,venv
+
+# Ignorer les erreurs spécifiques de PyYAML
+per-file-ignores =
+    # Ignorer les erreurs de style et les imports * dans PyYAML
+    venv/Lib/site-packages/yaml/*: F405,E128,E302,E501,E305,E266,E265,E266,E301,E117,E303,E713,E401
+
+# Configuration générale
+max-line-length = 120
+extend-ignore = E203, W503
