@@ -31,6 +31,13 @@ def main():
         print("Veuillez la définir dans le fichier .env ou dans les variables d'environnement système.")
         sys.exit(1)
     
+    # Afficher les variables d'environnement pour le débogage
+    print("\n=== Variables d'environnement ===")
+    for key in ['DATABASE_URL', 'POSTGRES_DB', 'POSTGRES_USER', 'POSTGRES_PASSWORD', 'POSTGRES_HOST', 'POSTGRES_PORT']:
+        print(f"{key}: {'***' if 'PASSWORD' in key else os.environ.get(key, 'Non défini')}")
+    print("==============================\n")
+    
+    # Utiliser les paramètres Django par défaut
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'fapag_collecte_backend.settings')
     
     try:

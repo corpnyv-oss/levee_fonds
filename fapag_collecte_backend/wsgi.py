@@ -26,6 +26,7 @@ if not os.getenv('SECRET_KEY'):
 
 from django.core.wsgi import get_wsgi_application
 
+# Utiliser les paramètres Django par défaut
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'fapag_collecte_backend.settings')
 
 application = get_wsgi_application()

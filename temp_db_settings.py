@@ -1,5 +1,6 @@
-from pathlib import Path
 import os
+import sys
+from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -7,18 +8,26 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'temporary-secret-key-for-development-only-1234567890'
 
-# Configuration du modèle utilisateur personnalisé
-AUTH_USER_MODEL = 'collecte.Utilisateur'
-
-# Backends d'authentification
-AUTHENTICATION_BACKENDS = [
-    'django.contrib.auth.backends.ModelBackend',
-]
-
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
 ALLOWED_HOSTS = ['*']
+
+# Configuration de la base de données PostgreSQL
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'db_levee_fonds',
+        'USER': 'db_levee_fonds_user',
+        'PASSWORD': '3gWX7NcyKeyLbVTGHBerEiU5d37LSBHA',
+        'HOST': 'dpg-d2l2ir95pdvs73a92fog-a.frankfurt-postgres.render.com',
+        'PORT': '5432',
+        'OPTIONS': {
+            'connect_timeout': 10,
+            'sslmode': 'require',
+        },
+    }
+}
 
 # Application definition
 INSTALLED_APPS = [

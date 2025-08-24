@@ -1,37 +1,55 @@
 import psycopg2
-from psycopg2 import OperationalError
+import ssl
+from psycopg2 import OperationalError, Error as PgError
 
 def test_connection():
+    conn = None
     try:
-        conn = psycopg2.connect(
-            dbname='levee_fonds',
-            user='postgres',
-            password='Root@FAPAG@2025',
-            host='localhost',
-            port='5432'
-        )
+        print("Tentative de connexion à la base de données...")
+        
+        # Configuration SSL
+        ssl_context = ssl.create_default_context()
+        ssl_context.verify_mode = ssl.CERT_REQUIRED
+        
+        # Paramètres de connexion
+        conn_params = {
+            'dbname': 'db_levee_fonds',
+            'user': 'db_levee_fonds_user',
+            'password': '3gWX7NcyKeyLbVTGHBerEiU5d37LSBHA',
+            'host': 'dpg-d2l2ir95pdvs73a92fog-a.frankfurt-postgres.render.com',
+            'port': '5432',
+            'connect_timeout': 10,
+            'sslmode': 'require',
+            'sslrootcert': ssl.get_default_verify_paths().cafile,
+            'ssl': ssl_context
+        }
+        
+        print("Paramètres de connexion:")
+        for key in ['host', 'port', 'dbname', 'user']:
+            print(f"  {key}: {conn_params[key]}")
+            
+        # Tentative de connexion
+        conn = psycopg2.connect(**conn_params)
         print("✅ Connexion à la base de données réussie!")
         
-        # Vérifier si la table utilisateur existe
-        cursor = conn.cursor()
-        cursor.execute("""
-            SELECT table_name 
-            FROM information_schema.tables 
-            WHERE table_schema = 'public'
-        """)
-        tables = cursor.fetchall()
-        print("\n📋 Tables disponibles dans la base de données:")
-        for table in tables:
-            print(f"- {table[0]}")
-            
-        conn.close()
-    except OperationalError as e:
-        print(f"❌ Erreur de connexion à la base de données: {e}")
-        print("\n🔧 Vérifiez que:")
-        print("1. PostgreSQL est en cours d'exécution")
-        print("2. Les identifiants dans le script sont corrects")
-        print("3. Le port 5432 est accessible")
-        print(f"4. La base de données 'levee_fonds' existe")
+        # Tester une requête simple
+        cur = conn.cursor()
+        cur.execute("SELECT version();")
+        db_version = cur.fetchone()
+        print(f"Version de PostgreSQL: {db_version[0]}")
+        
+        return True
+        
+    except PgError as e:
+        print(f"❌ Erreur PostgreSQL: {e}")
+        return False
+    except Exception as e:
+        print(f"❌ Erreur inattendue: {e}")
+        return False
+    finally:
+        if conn is not None:
+            conn.close()
+            print("Connexion fermée.")
 
 if __name__ == "__main__":
     test_connection()

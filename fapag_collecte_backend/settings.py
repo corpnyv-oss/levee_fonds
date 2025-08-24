@@ -12,7 +12,12 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from pathlib import Path
 import os
+import dj_database_url
 from django.utils.translation import gettext_lazy as _
+from dotenv import load_dotenv
+
+# Charger les variables d'environnement
+load_dotenv()
 
 # Configuration des chemins
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -259,16 +264,17 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt.token_blacklist',
     'corsheaders',
     'axes',
-    'two_factor',
-    'django_otp',
-    'django_otp.plugins.otp_totp',
+    # 'two_factor',  # Désactivé temporairement
+    # 'django_otp',  # Désactivé temporairement
+    # 'django_otp.plugins.otp_totp',  # Désactivé temporairement
     'django_celery_results',
     'django_celery_beat',
-    'storages',
+    # 'storages',  # Désactivé temporairement
     'drf_yasg',
     'django_extensions',
     'csp',
-    'sslserver',
+    'django_filters',
+    # 'sslserver',  # Désactivé temporairement
     
     # App principale
     'collecte',
@@ -345,21 +351,28 @@ TEMPLATES = [
 WSGI_APPLICATION = 'fapag_collecte_backend.wsgi.application'
 
 
-# Database
-# https://docs.djangoproject.com/en/5.2/ref/settings/#databases
-
-
-
+# Configuration de la base de données
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv('DB_NAME', 'levee_fonds'),
-        'USER': os.getenv('DB_USER', 'postgres'),
-        'PASSWORD': os.getenv('DB_PASSWORD', ''),
-        'HOST': os.getenv('DB_HOST', 'localhost'),
-        'PORT': os.getenv('DB_PORT', '5432'),
+        'NAME': 'db_levee_fonds',
+        'USER': 'db_levee_fonds_user',
+        'PASSWORD': '3gWX7NcyKeyLbVTGHBerEiU5d37LSBHA',
+        'HOST': 'dpg-d2l2ir95pdvs73a92fog-a.frankfurt-postgres.render.com',
+        'PORT': '5432',
+        'CONN_MAX_AGE': 600,
+        'OPTIONS': {
+            'connect_timeout': 5,
+            'sslmode': 'require',
+        },
     }
 }
+
+# Configuration alternative avec DATABASE_URL si disponible
+if 'DATABASE_URL' in os.environ:
+    import dj_database_url
+    db_from_env = dj_database_url.config(conn_max_age=600, ssl_require=True)
+    DATABASES['default'].update(db_from_env)
 
 
 # Password validation
@@ -454,52 +467,11 @@ if not DEBUG and ENV.get('AWS_ACCESS_KEY_ID'):
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# ===== DATABASE CONFIGURATION =====
-# PostgreSQL configuration
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': ENV.get('POSTGRES_DB', 'fapag_collecte'),
-        'USER': ENV.get('POSTGRES_USER', 'fapag_user'),
-        'PASSWORD': ENV.get('POSTGRES_PASSWORD', ''),
-        'HOST': ENV.get('POSTGRES_HOST', 'localhost'),
-        'PORT': ENV.get('POSTGRES_PORT', '5432'),
-        'OPTIONS': {
-            'connect_timeout': int(ENV.get('POSTGRES_CONNECT_TIMEOUT', '5')),
-            'options': '-c statement_timeout=15000ms -c idle_in_transaction_session_timeout=30000',
-            'client_encoding': 'UTF8',
-        },
-        'CONN_MAX_AGE': 600,  # 10 minutes
-        'ATOMIC_REQUESTS': True,  # Encapsule chaque vue dans une transaction
-    }
-}
-
-# Configuration du pool de connexions pour les environnements de production
-if not DEBUG:
-    try:
-        import django_db_geventpool
-        DATABASES['default']['ENGINE'] = 'django_db_geventpool.backends.postgresql_psycopg2'
-        DATABASES['default']['OPTIONS'].update({
-            'MAX_CONNS': int(ENV.get('DB_MAX_CONNECTIONS', '20')),
-            'REUSE_CONNS': int(ENV.get('DB_REUSE_CONNECTIONS', '10')),
-        })
-    except ImportError:
-        print("Warning: django-db-geventpool n'est pas installé. Le pool de connexions ne sera pas activé.")
+# Configuration de la base de données principale
+# Les paramètres sont définis plus haut dans le fichier
 
 # Configuration des répliques de lecture (optionnel)
 if ENV.get('DB_REPLICA_HOST'):
-    DATABASES['replica'] = {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': ENV.get('POSTGRES_DB', 'fapag_collecte'),
-        'USER': ENV.get('POSTGRES_USER', 'fapag_user'),
-        'PASSWORD': ENV.get('POSTGRES_PASSWORD', ''),
-        'HOST': ENV.get('DB_REPLICA_HOST'),
-        'PORT': ENV.get('POSTGRES_PORT', '5432'),
-        'OPTIONS': {
-            'connect_timeout': int(ENV.get('POSTGRES_CONNECT_TIMEOUT', '5')),
-        },
-    }
-    
     DATABASE_ROUTERS = ['collecte.routers.PrimaryReplicaRouter']
 
 # ===== INTERNATIONALIZATION =====
@@ -579,18 +551,16 @@ REST_FRAMEWORK = {
     'PAGE_SIZE': 20,
     
     # Rendering & Parsing
-    'DEFAULT_RENDERER_CLASSES': (
-        'djangorestframework_camel_case.render.CamelCaseJSONRenderer',
-        'djangorestframework_camel_case.render.CamelCaseBrowsableAPIRenderer',
-    ) if DEBUG else (
-        'djangorestframework_camel_case.render.CamelCaseJSONRenderer',
-    ),
+    'DEFAULT_RENDERER_CLASSES': [
+        'rest_framework.renderers.JSONRenderer',
+        'rest_framework.renderers.BrowsableAPIRenderer',
+    ],
     
-    'DEFAULT_PARSER_CLASSES': (
-        'djangorestframework_camel_case.parser.CamelCaseJSONParser',
-        'djangorestframework_camel_case.parser.CamelCaseFormParser',
-        'djangorestframework_camel_case.parser.CamelCaseMultiPartParser',
-    ),
+    'DEFAULT_PARSER_CLASSES': [
+        'rest_framework.parsers.JSONParser',
+        'rest_framework.parsers.FormParser',
+        'rest_framework.parsers.MultiPartParser',
+    ],
     
     # Throttling
     'DEFAULT_THROTTLE_CLASSES': [
