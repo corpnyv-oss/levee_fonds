@@ -1,1 +1,1 @@
-web: gunicorn --chdir fapag_collecte_backend wsgi:application
+web: python -m gunicorn fapag_collecte_backend.wsgi:application
