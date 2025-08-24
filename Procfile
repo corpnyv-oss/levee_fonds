@@ -1,1 +1,1 @@
-web: gunicorn fapag_collecte_backend.wsgi:application --log-file -
+web: gunicorn fapag_collecte_backend.wsgi
