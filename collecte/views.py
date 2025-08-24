@@ -1,4 +1,22 @@
 from django.shortcuts import render
+from django.http import JsonResponse
+from rest_framework.views import APIView
+from rest_framework.response import Response
+
+class AccueilView(APIView):
+    """
+    Vue d'accueil de l'API de collecte de fonds
+    """
+    def get(self, request):
+        return Response({
+            'message': 'Bienvenue sur l\'API de collecte de fonds FAPAG',
+            'endpoints': {
+                'documentation': '/swagger/',
+                'api': '/api/',
+                'admin': '/admin/'
+            },
+            'status': 'opérationnel'
+        })
 from rest_framework import viewsets, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
