@@ -546,6 +546,9 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.IsAuthenticated',
     ),
     
+    # Custom exception handler
+    'EXCEPTION_HANDLER': 'fapag_collecte_backend.exceptions.custom_exception_handler',
+    
     # Pagination
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 20,
