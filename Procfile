@@ -1,1 +1,1 @@
-web: sh start.sh
+web: gunicorn fapag_collecte_backend.wsgi
