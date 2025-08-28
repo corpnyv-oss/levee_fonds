@@ -1,6 +1,8 @@
 import os
 from django.core.wsgi import get_wsgi_application
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'fapag_collecte_backend.settings')
+# Utiliser les paramètres de production en environnement de production
+settings_module = 'fapag_collecte_backend.production_settings' if os.getenv('DJANGO_PRODUCTION') else 'fapag_collecte_backend.settings'
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', settings_module)
 
 application = get_wsgi_application()

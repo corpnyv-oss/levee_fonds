@@ -35,6 +35,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Load environment variables
 ENV = os.environ.copy()
 
+# Configuration de l'authentification
+AUTH_USER_MODEL = 'collecte.CustomUser'
+
 # Configuration de la journalisation
 LOGGING = {
     'version': 1,
@@ -113,6 +116,18 @@ LOGGING = {
     },
 }
 
+# Configuration du rate limiting
+RATELIMIT_ENABLE = True
+RATELIMIT_USE_CACHE = 'default'
+RATELIMIT_VIEW = 'fapag_collecte_backend.views.ratelimited_error'
+
+# Configuration 2FA (désactivée temporairement)
+# TWO_FACTOR_PATCH_ADMIN = False
+# TWO_FACTOR_WEBAUTHN_RP_NAME = 'FAPAG Collecte'
+# TWO_FACTOR_LOGIN_TIMEOUT = 300  # 5 minutes
+# TWO_FACTOR_REMEMBER_COOKIE_AGE = 30 * 24 * 3600  # 30 jours
+# TWO_FACTOR_OTP_TOTP_ISSUER = 'FAPAG Collecte'
+
 # SECURITY WARNING: keep the secret key used in production secret!
 if 'SECRET_KEY' not in ENV:
     raise ValueError("SECRET_KEY must be set in environment variables")
@@ -145,6 +160,15 @@ SESSION_SAVE_EVERY_REQUEST = True
 # Security middleware settings
 SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
+
+# Configuration de django-axes (verrouillage de compte)
+AXES_FAILURE_LIMIT = 5  # Nombre d'essais avant verrouillage
+AXES_COOLOFF_TIME = 1  # 1 heure de verrouillage
+AXES_LOCKOUT_TEMPLATE = 'account_locked.html'
+AXES_LOCKOUT_URL = '/locked-out/'
+AXES_VERBOSE = True
+AXES_RESET_ON_SUCCESS = True  # Réinitialiser le compteur après une connexion réussie
+
 SECURE_HSTS_SECONDS = int(ENV.get('SECURE_HSTS_SECONDS', '31536000'))  # 1 year
 SECURE_HSTS_INCLUDE_SUBDOMAINS = ENV.get('SECURE_HSTS_INCLUDE_SUBDOMAINS', 'True') == 'True'
 SECURE_HSTS_PRELOAD = ENV.get('SECURE_HSTS_PRELOAD', 'True') == 'True'
@@ -170,18 +194,18 @@ CONTENT_SECURITY_POLICY = {
         'base-uri': ["'self'"],
         'form-action': ["'self'"],
         'frame-ancestors': ["'self'"],
-        'upgrade-insecure-requests': '' if not DEBUG else None,
+        'upgrade-insecure-requests': '',
         'block-all-mixed-content': ''
     }
 }
 
 # Configuration de la politique de sécurité des en-têtes
-SECURE_HSTS_SECONDS = 31536000  # 1 an
-SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-SECURE_HSTS_PRELOAD = True
-SECURE_SSL_REDIRECT = not DEBUG
-SESSION_COOKIE_SECURE = not DEBUG
-CSRF_COOKIE_SECURE = not DEBUG
+SECURE_HSTS_SECONDS = 0  # Désactivé
+SECURE_HSTS_INCLUDE_SUBDOMAINS = False
+SECURE_HSTS_PRELOAD = False
+SECURE_SSL_REDIRECT = False
+SESSION_COOKIE_SECURE = False
+CSRF_COOKIE_SECURE = False
 CSRF_COOKIE_HTTPONLY = True
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_AGE = 1209600  # 2 semaines en secondes
@@ -251,6 +275,28 @@ PERMISSIONS_POLICY = {
 
 # Application definition
 
+# Configuration du logging
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
+    },
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {message}',
+            'style': '{',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'INFO',
+    },
+}
+
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -258,15 +304,16 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    
+    'axes',  # Pour le verrouillage de compte
     # Apps tierces
     'rest_framework',
     'rest_framework_simplejwt.token_blacklist',
     'corsheaders',
-    'axes',
-    # 'two_factor',  # Désactivé temporairement
-    # 'django_otp',  # Désactivé temporairement
-    # 'django_otp.plugins.otp_totp',  # Désactivé temporairement
+    'django_otp',
+    'django_otp.plugins.otp_totp',
+    'django_otp.plugins.otp_static',
+    'two_factor',
+    'two_factor.plugins.phonenumber',
     'django_celery_results',
     'django_celery_beat',
     # 'storages',  # Désactivé temporairement
@@ -275,9 +322,14 @@ INSTALLED_APPS = [
     'csp',
     'django_filters',
     # 'sslserver',  # Désactivé temporairement
-    
     # App principale
     'collecte',
+]
+
+AUTHENTICATION_BACKENDS = [
+    'axes.backends.AxesStandaloneBackend',
+    'django.contrib.auth.backends.ModelBackend',
+    'two_factor.auth_backends.TwoFactorBackend',
 ]
 
 # Configuration Swagger/OpenAPI
@@ -323,9 +375,10 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django_otp.middleware.OTPMiddleware',
+    'django_otp.middleware.OTPMiddleware',  # Two-factor authentication
+    'two_factor.middleware.threadlocals.ThreadLocals',
     'csp.middleware.CSPMiddleware',
-    'axes.middleware.AxesMiddleware',
+    'axes.middleware.AxesMiddleware',  # Doit être le dernier
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django_ratelimit.middleware.RatelimitMiddleware',
@@ -350,30 +403,30 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'fapag_collecte_backend.wsgi.application'
 
+# Configuration de la base de données Supabase
+import dj_database_url
 
-# Configuration de la base de données
+# Configuration de la base de données via DATABASE_URL
+database_url = os.environ.get('DATABASE_URL')
+if not database_url:
+    raise ValueError("La variable d'environnement DATABASE_URL doit être définie")
+
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'db_levee_fonds',
-        'USER': 'db_levee_fonds_user',
-        'PASSWORD': '3gWX7NcyKeyLbVTGHBerEiU5d37LSBHA',
-        'HOST': 'dpg-d2l2ir95pdvs73a92fog-a.frankfurt-postgres.render.com',
-        'PORT': '5432',
-        'CONN_MAX_AGE': 600,
-        'OPTIONS': {
-            'connect_timeout': 5,
-            'sslmode': 'require',
-        },
-    }
+    'default': dj_database_url.config(
+        default=database_url,
+        conn_max_age=600,
+        conn_health_checks=True,
+        ssl_require=True
+    )
 }
 
-# Configuration alternative avec DATABASE_URL si disponible
-if 'DATABASE_URL' in os.environ:
-    import dj_database_url
-    db_from_env = dj_database_url.config(conn_max_age=600, ssl_require=True)
-    DATABASES['default'].update(db_from_env)
-
+# Configuration spécifique à PostgreSQL
+DATABASES['default']['OPTIONS'] = {
+    'connect_timeout': 5,
+    'options': '-c statement_timeout=15000ms',
+    'sslmode': 'require',
+    'client_encoding': 'UTF8',
+}
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
@@ -411,6 +464,15 @@ SESSION_COOKIE_HTTPONLY = True
 SESSION_SAVE_EVERY_REQUEST = True
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 
+# Login URL
+LOGIN_URL = 'two_factor:login'
+LOGIN_REDIRECT_URL = 'two_factor:profile'
+TWO_FACTOR_PATCH_ADMIN = True
+TWO_FACTOR_REMEMBER_COOKIE_AGE = 60 * 60 * 24 * 30  # 30 jours
+TWO_FACTOR_CALL_GATEWAY = 'two_factor.gateways.fake.Fake'
+TWO_FACTOR_SMS_GATEWAY = 'two_factor.gateways.twilio.gateway.Twilio'
+TWO_FACTOR_WEBAUTHN_RP_NAME = 'FAPAG Collecte'
+TWO_FACTOR_WEBAUTHN_RP_ID = ENV.get('TWO_FACTOR_WEBAUTHN_RP_ID', 'localhost')
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
@@ -599,33 +661,40 @@ from datetime import timedelta
 
 SIMPLE_JWT = {
     # Token lifetimes
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=ENV.get('JWT_ACCESS_TOKEN_LIFETIME_MINUTES', 15)),
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=ENV.get('JWT_REFRESH_TOKEN_LIFETIME_DAYS', 1)),
-    'ROTATE_REFRESH_TOKENS': ENV.get('JWT_ROTATE_REFRESH_TOKENS', True),
-    'BLACKLIST_AFTER_ROTATION': ENV.get('JWT_BLACKLIST_AFTER_ROTATION', True),
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=int(ENV.get('JWT_ACCESS_TOKEN_LIFETIME_MINUTES', 15))),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=int(ENV.get('JWT_REFRESH_TOKEN_LIFETIME_DAYS', 1))),
+    'ROTATE_REFRESH_TOKENS': ENV.get('JWT_ROTATE_REFRESH_TOKENS', 'True').lower() == 'true',
+    'BLACKLIST_AFTER_ROTATION': ENV.get('JWT_BLACKLIST_AFTER_ROTATION', 'True').lower() == 'true',
+    'UPDATE_LAST_LOGIN': ENV.get('JWT_UPDATE_LAST_LOGIN', 'False').lower() == 'true',
     
-    # Token security
+    # Configuration de chiffrement
     'ALGORITHM': ENV.get('JWT_ALGORITHM', 'HS256'),
     'SIGNING_KEY': ENV.get('JWT_SIGNING_KEY', SECRET_KEY),
     'VERIFYING_KEY': ENV.get('JWT_VERIFYING_KEY', None),
     'AUDIENCE': ENV.get('JWT_AUDIENCE', None),
     'ISSUER': ENV.get('JWT_ISSUER', None),
+    'JWK_URL': ENV.get('JWT_JWK_URL', None),
+    'LEEWAY': int(ENV.get('JWT_LEEWAY', 0)),
     
-    # Token headers
+    # En-têtes d'authentification
     'AUTH_HEADER_TYPES': ('Bearer', 'JWT'),
     'AUTH_HEADER_NAME': 'HTTP_AUTHORIZATION',
     'USER_ID_FIELD': 'id',
     'USER_ID_CLAIM': 'user_id',
+    'USER_AUTHENTICATION_RULE': 'rest_framework_simplejwt.authentication.default_user_authentication_rule',
     
-    # Token claims
+    # Classes de tokens
     'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
     'TOKEN_TYPE_CLAIM': 'token_type',
+    'TOKEN_USER_CLASS': 'rest_framework_simplejwt.models.TokenUser',
+    
+    # JWT ID
     'JTI_CLAIM': 'jti',
     
-    # Sliding tokens
+    # Tokens glissants (sliding tokens)
     'SLIDING_TOKEN_REFRESH_EXP_CLAIM': 'refresh_exp',
-    'SLIDING_TOKEN_LIFETIME': timedelta(minutes=ENV.get('JWT_SLIDING_TOKEN_LIFETIME_MINUTES', 5)),
-    'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=ENV.get('JWT_SLIDING_REFRESH_LIFETIME_DAYS', 1)),
+    'SLIDING_TOKEN_LIFETIME': timedelta(minutes=int(ENV.get('JWT_SLIDING_TOKEN_LIFETIME_MINUTES', 5))),
+    'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=int(ENV.get('JWT_SLIDING_REFRESH_LIFETIME_DAYS', 1))),
     
     # Custom authentication
     'USER_AUTHENTICATION_RULE': 'rest_framework_simplejwt.authentication.default_user_authentication_rule',
@@ -634,9 +703,18 @@ SIMPLE_JWT = {
 }
 
 # ===== CORS CONFIGURATION =====
+# CORS Configuration
+# Configuration sécurisée de CORS à partir des variables d'environnement
 CORS_ALLOW_ALL_ORIGINS = ENV.get('CORS_ALLOW_ALL_ORIGINS', 'False').lower() == 'true'
-CORS_ALLOWED_ORIGINS = ENV.get('CORS_ALLOWED_ORIGINS', 'http://localhost:3000,http://127.0.0.1:3000').split(',')
 CORS_ALLOW_CREDENTIALS = ENV.get('CORS_ALLOW_CREDENTIALS', 'True').lower() == 'true'
+CORS_ALLOWED_ORIGINS = ENV.get('CORS_ALLOWED_ORIGINS', 'http://localhost:3000,http://127.0.0.1:3000').split(',')
+CSRF_TRUSTED_ORIGINS = ENV.get('CSRF_TRUSTED_ORIGINS', 'http://localhost:3000,http://127.0.0.1:3000').split(',')
+
+# Headers de sécurité supplémentaires
+SECURE_REFERRER_POLICY = 'same-origin'
+X_CONTENT_TYPE_OPTIONS = 'nosniff'
+X_XSS_PROTECTION = '1; mode=block'
+
 CORS_ALLOW_HEADERS = [
     'accept',
     'accept-encoding',
@@ -704,7 +782,7 @@ SINGPAY = {
     'API_KEY': ENV.get('SINGPAY_API_KEY', ''),
     'SECRET': ENV.get('SINGPAY_SECRET', ''),
     'WEBHOOK_SECRET': ENV.get('SINGPAY_WEBHOOK_SECRET', ''),
-    'BASE_URL': ENV.get('SINGPAY_BASE_URL', 'https://sandbox-api.singpay.com'),
+    'BASE_URL': ENV.get('SINGPAY_BASE_URL', 'http://sandbox-api.singpay.com'),
     'RETURN_URL': ENV.get('SINGPAY_RETURN_URL', 'http://localhost:3000/singpay/success'),
     'CANCEL_URL': ENV.get('SINGPAY_CANCEL_URL', 'http://localhost:3000/singpay/cancel'),
     'TIMEOUT': int(ENV.get('SINGPAY_TIMEOUT', 30)),  # seconds

@@ -1,71 +1,55 @@
-amqp==5.3.1
-argon2-cffi==25.1.0
-argon2-cffi-bindings==25.1.0
-asgiref==3.9.1
-billiard==4.2.1
-boto3==1.40.16
-botocore==1.40.16
-celery==5.5.3
-certifi==2025.8.3
-cffi==1.17.1
-charset-normalizer==3.4.3
-click==8.2.1
-click-didyoumean==0.3.1
-click-plugins==1.1.1.2
-click-repl==0.3.0
-colorama==0.4.6
-cron-descriptor==1.4.5
-cryptography==45.0.6
-dj-database-url==3.0.1
-Django==5.2.5
-django-axes==8.0.0
-django-celery-beat==2.8.1
-django-cors-headers==4.7.0
-django-csp==4.0
-django-db-geventpool==4.0.8
-django-environ==0.12.0
-django-extensions==4.1
-django-filter==25.1
-django-simple-history==3.10.1
-django-storages==1.14.6
-django-timezone-field==7.1
-django_celery_results==2.6.0
-djangorestframework==3.16.1
-djangorestframework-camel-case==1.4.2
-djangorestframework_simplejwt==5.5.1
-drf-yasg==1.21.10
-ecdsa==0.19.1
-gunicorn==23.0.0
-idna==3.10
-inflection==0.5.1
-jmespath==1.0.1
-kombu==5.5.4
-packaging==25.0
-pillow==11.3.0
-prompt_toolkit==3.0.51
-psycopg2-binary==2.9.10
-pyasn1==0.6.1
-pycparser==2.22
-PyJWT==2.10.1
-python-crontab==3.3.0
-python-dateutil==2.9.0.post0
-python-dotenv==1.1.1
-python-jose==3.5.0
-python-json-logger==3.3.0
-pytz==2025.2
-PyYAML==6.0.2
-redis==6.4.0
-requests==2.32.5
-rsa==4.9.1
-s3transfer==0.13.1
-sentry-sdk==2.35.0
-six==1.17.0
-sqlparse==0.5.3
-tzdata==2025.2
-uritemplate==4.2.0
-urllib3==2.5.0
-vine==5.1.0
-wcwidth==0.2.13
-whitenoise==6.9.0
-django-ratelimit==4.1.0
-django-otp==1.3.0
+# Core
+Django>=4.2.0,<5.0.0
+djangorestframework>=3.14.0
+python-decouple>=3.8  # Gestion des variables d'environnement
+
+# Database
+dj-database-url>=2.1.0
+psycopg2-binary>=2.9.9  # Pour le développement
+psycopg2>=2.9.9  # Pour la production
+
+# Authentication
+django-axes>=7.0.0
+djangorestframework-simplejwt>=5.3.0
+django-two-factor-auth>=1.15.4
+django-otp>=1.2.0
+qrcode>=7.4.2
+phonenumbers>=8.13.11
+
+# Security
+django-csp>=3.7
+django-environ>=0.11.2
+python-dotenv>=1.0.0
+django-sslserver>=0.22  # Pour le développement local avec HTTPS
+
+# API
+drf-yasg>=1.21.7
+django-filter>=23.5
+
+# Media
+Pillow>=10.0.0
+
+# Async & Task Queue
+celery>=5.3.0
+redis>=4.5.0
+
+# Deployment
+gunicorn>=21.2.0
+whitenoise[brotli]>=6.5.0  # Pour la compression des fichiers statiques
+python-memcached>=1.59
+brotlipy>=0.7.0  # Pour la compression Brotli
+
+# CORS
+django-cors-headers>=4.0.0
+
+# Production
+sentry-sdk>=1.40.0  # Pour la surveillance des erreurs
+dj-database-url>=2.1.0  # Pour la configuration de la base de données
+python-dotenv>=1.0.0  # Pour charger les variables d'environnement
+
+# Utilitaires
+python-dateutil>=2.8.2
+pytz>=2023.3  # Gestion des fuseaux horaires
+requests>=2.31.0  # Pour les requêtes HTTP
+pytz>=2023.3  # Gestion des fuseaux horaires
+boto3>=1.26.0  # Pour le stockage S3 (optionnel)

@@ -1,4 +1,4 @@
-# Guide Utilisateur - Application de Collecte de Fonds
+# Guide Utilisateur - Application de Collecte de Fonds FAPAG
 
 ## Table des matières
 - [Guide Administrateur](#guide-administrateur)
@@ -6,11 +6,13 @@
   - [Gestion des Cagnottes](#gestion-des-cagnottes)
   - [Suivi des Paiements](#suivi-des-paiements)
   - [Configuration du Système](#configuration-du-système)
+  - [Sécurité et Authentification](#sécurité-et-authentification)
 - [Guide Donateur](#guide-donateur)
   - [Créer un Compte](#créer-un-compte)
   - [Faire un Don](#faire-un-don)
   - [Suivre ses Dons](#suivre-ses-dons)
   - [Gérer son Profil](#gérer-son-profil)
+  - [Sécurité du Compte](#sécurité-du-compte)
 - [FAQ](#faq)
 
 ---
@@ -73,6 +75,24 @@
 2. Configurez les modèles d'emails
 3. Activez/désactivez les notifications
 
+### Sécurité et Authentification
+
+#### Activer l'Authentification à Deux Facteurs (2FA)
+1. Allez dans "Sécurité" > "Authentification à deux facteurs"
+2. Scannez le QR code avec votre application d'authentification (Google Authenticator, Authy, etc.)
+3. Entrez le code de vérification fourni par l'application
+4. Sauvegardez vos codes de récupération en lieu sûr
+
+#### Gérer les Appareils de Confiance
+1. Allez dans "Sécurité" > "Appareils de confiance"
+2. Consultez la liste des appareils connectés
+3. Révoquez l'accès aux appareils non reconnus
+
+#### Politique de Mot de Passe
+- Les mots de passe doivent contenir au moins 12 caractères
+- Utilisez des majuscules, minuscules, chiffres et caractères spéciaux
+- Évitez les mots de passe courants ou personnels
+
 ---
 
 ## Guide Donateur
@@ -98,6 +118,26 @@
 ### Gérer son Profil
 1. Cliquez sur votre nom en haut à droite
 2. Sélectionnez "Mon Profil"
+3. Mettez à jour vos informations personnelles
+4. Changez votre photo de profil si nécessaire
+
+### Sécurité du Compte
+
+#### Activer l'Authentification à Deux Facteurs
+1. Allez dans "Paramètres de sécurité"
+2. Cliquez sur "Activer l'authentification à deux facteurs"
+3. Suivez les instructions pour configurer avec une application d'authentification
+
+#### Vérifier l'Activité du Compte
+1. Allez dans "Sécurité" > "Activité récente"
+2. Consultez les connexions récentes
+3. Signalez toute activité suspecte
+
+#### Changer de Mot de Passe
+1. Allez dans "Sécurité" > "Mot de passe"
+2. Entrez votre mot de passe actuel
+3. Saisissez et confirmez votre nouveau mot de passe
+4. Cliquez sur "Mettre à jour le mot de passe"
 3. Mettez à jour vos informations
 4. Activez l'authentification à deux facteurs pour plus de sécurité
 

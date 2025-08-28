@@ -1,1 +1,1 @@
-web: gunicorn fapag_collecte_backend.wsgi
+web: gunicorn fapag_collecte_backend.wsgi:application --workers 4 --worker-class gthread --threads 2 --timeout 120 --log-level=info --access-logfile - --error-logfile -
