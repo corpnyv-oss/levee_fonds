@@ -32,6 +32,7 @@ Pillow>=10.0.0
 # Async & Task Queue
 celery>=5.3.0
 redis>=4.5.0
+django-celery-results>=2.5.1  # Pour stocker les résultats des tâches Celery
 
 # Deployment
 gunicorn>=21.2.0
