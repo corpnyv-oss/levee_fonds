@@ -1,61 +1,61 @@
 # Core
-Django>=4.2.0,<5.0.0
-djangorestframework>=3.14.0
-python-decouple>=3.8
+Django==4.2.7
+djangorestframework==3.14.0
+python-decouple==3.8  # Gestion des variables d'environnement
 
 # Database
-dj-database-url>=2.1.0
-psycopg2-binary>=2.9.9
+dj-database-url==2.1.0
+psycopg2-binary==2.9.9  # Pour le développement
 
 # Authentication
-django-axes>=7.0.0
-djangorestframework-simplejwt>=5.3.0
-django-two-factor-auth>=1.15.4
-django-otp>=1.2.0
-qrcode>=7.4.2
-phonenumbers>=8.13.11
-django-phonenumber-field>=8.0.0
+django-axes==7.0.0  # Pour la sécurité des connexions
+djangorestframework-simplejwt==5.3.0  # Pour l'authentification JWT
+django-two-factor-auth==1.15.4
+django-otp==1.2.0  # Pour l'authentification à deux facteurs
+qrcode==7.4.2
+phonenumbers==8.13.11
+django-phonenumber-field==8.0.0  # Pour la validation des numéros de téléphone
 
 # Security
-django-csp>=3.7
-django-environ>=0.11.2
-python-dotenv>=1.0.0
-django-sslserver>=0.22
+django-csp==3.7
+django-environ==0.11.2
+python-dotenv==1.0.0
+django-sslserver==0.22  # Pour le développement local avec HTTPS
 
 # API
-drf-yasg>=1.21.7
-django-filter>=23.5
+drf-yasg==1.21.7  # Pour la documentation Swagger
+django-filter==23.5
 
 # Media
-Pillow>=10.0.0
+Pillow==10.0.0
 
 # Async & Task Queue
-celery>=5.3.0
-redis>=4.5.0
-django-celery-results>=2.6.0
-django-celery-beat>=2.5.0
+celery==5.3.4
+redis==4.5.5
+django-celery-results==2.5.1
+django-celery-beat==2.5.0  # Pour les tâches planifiées
 
 # Development Tools
-django-extensions>=3.2.3
-django-crispy-forms>=2.0
-django-widget-tweaks>=1.5.0
-django-simple-history>=3.4.0
+django-extensions==3.2.3  # Utilitaires supplémentaires pour Django
+django-crispy-forms==2.0  # Pour les formulaires stylisés
+django-widget-tweaks==1.5.0  # Pour personnaliser les widgets de formulaire
+django-simple-history==3.4.0  # Pour le suivi des modifications
 
 # Deployment
-gunicorn>=21.2.0
-whitenoise[brotli]>=6.5.0
-python-memcached>=1.59
-brotlipy>=0.7.0
-certifi>=2023.7.22
+gunicorn==21.2.0
+whitenoise[brotli]==6.5.0  # Pour la compression des fichiers statiques
+python-memcached==1.59
+brotlipy==0.7.0  # Pour la compression Brotli
+certifi==2023.7.22  # Pour la gestion des certificats SSL
 
 # CORS
-django-cors-headers>=4.0.0
+django-cors-headers==4.2.0
 
 # Production
-sentry-sdk>=1.40.0
+sentry-sdk==1.40.0  # Pour la surveillance des erreurs
 
-# Utils
-python-dateutil>=2.8.2
-pytz>=2023.3
-requests>=2.31.0
-boto3>=1.26.0
+# Utilitaires
+python-dateutil==2.8.2
+pytz==2023.3  # Gestion des fuseaux horaires
+requests==2.31.0  # Pour les requêtes HTTP
+boto3==1.26.0  # Pour le stockage S3 (optionnel)
