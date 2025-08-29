@@ -10,7 +10,7 @@ def run():
         return True
     
     import django.core.handlers.wsgi
-    django.core.handlers.wsgi.WSGIRequest.host = property(lambda self: 'localhost:8000')
+    django.core.handlers.wsgi.WSGIRequest.host = property(lambda self: 'localhost:8081')
     
     # Remplacer la fonction de validation
     import django.http.request
@@ -22,7 +22,7 @@ def run():
     
     # Désactiver le rechargement automatique pour éviter les problèmes
     sys.argv.append('--noreload')
-    execute_from_command_line(['manage.py', 'runserver', '0.0.0.0:8000'])
+    execute_from_command_line(['manage.py', 'runserver', '0.0.0.0:8081'])
 
 if __name__ == '__main__':
     run()

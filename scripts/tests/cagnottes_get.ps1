@@ -5,7 +5,7 @@
 #  - Response JSON: liste d'objets. Chaque objet contient au minimum: id, titre, description, objectif, statut
 #  - Signification: la route GET /cagnottes/ liste les cagnottes publiques accessibles.
 
-$uri = 'http://127.0.0.1:8000/cagnottes/'
+$uri = 'http://127.0.0.1:8081/cagnottes/'
 try {
     $resp = Invoke-RestMethod -Uri $uri -Method Get -UseBasicParsing
     Write-Output "OK: reçu $(($resp | Measure-Object).Count) éléments"

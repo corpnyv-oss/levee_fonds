@@ -6,7 +6,7 @@
 #  - Signification: permet à l'utilisateur d'initier une participation pour une cagnotte donnée.
 
 $token = Read-Host "JWT Token"
-$uri = 'http://127.0.0.1:8000/participations/'
+$uri = 'http://127.0.0.1:8081/participations/'
 $body = @{
     cagnotte = 1
     montant = "10.00"

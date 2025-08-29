@@ -6,7 +6,7 @@
 
 $token = Read-Host "JWT Token"
 $txId = Read-Host "Transaction ID"
-$uri = "http://127.0.0.1:8000/transactions/$txId/"
+$uri = "http://127.0.0.1:8081/transactions/$txId/"
 try {
     $resp = Invoke-RestMethod -Uri $uri -Method Get -Headers @{ Authorization = "Bearer $token" } -UseBasicParsing
     Write-Output "OK: transaction trouvée"

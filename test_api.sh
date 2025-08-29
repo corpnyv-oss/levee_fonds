@@ -1,6 +1,6 @@
 #!/bin/bash
 
-API_URL="http://127.0.0.1:8000/api"
+API_URL="http://127.0.0.1:8081/api"
 
 # Identifiants à adapter
 CLIENT_EMAIL="client@email.com"

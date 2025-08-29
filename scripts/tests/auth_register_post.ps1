@@ -5,7 +5,7 @@
 #  - Response JSON: détail de création (message) ; en dev, peut contenir activation_token
 #  - Signification: crée un nouvel utilisateur inactif (is_active=False) et envoie un email d'activation
 
-$uri = 'http://127.0.0.1:8000/auth/register/register/'
+$uri = 'http://127.0.0.1:8081/auth/register/register/'
 $body = @{ email = 'newuser@example.com'; username = 'newuser'; password = 'pass1234' }
 try {
     $resp = Invoke-RestMethod -Uri $uri -Method Post -Body ($body | ConvertTo-Json) -ContentType 'application/json' -UseBasicParsing

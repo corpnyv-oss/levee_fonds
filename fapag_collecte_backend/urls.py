@@ -40,6 +40,7 @@ schema_view = get_schema_view(
     public=True,
     # Use a flat tuple of permission classes (avoid nested tuple)
     permission_classes=(permissions.AllowAny,) if settings.DEBUG else (permissions.IsAdminUser,),
+    url="http://127.0.0.1:8081",
 )
 
 @ensure_csrf_cookie

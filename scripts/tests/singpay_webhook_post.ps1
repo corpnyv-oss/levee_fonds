@@ -6,7 +6,7 @@
 #  - HTTP 401 si signature invalide
 #  - Signification: teste la logique de verification HMAC, anti-replay, idempotence et mapping des statuts
 
-$webhookUrl = 'http://127.0.0.1:8000/webhooks/singpay/'
+$webhookUrl = 'http://127.0.0.1:8081/webhooks/singpay/'
 $payload = @{ status = 'paid'; provider_ref = 'webhook-12345'; reference_psp = 'psp-1' } | ConvertTo-Json
 # calcule la signature HMAC-SHA256 (dev: on peut remplacer par header X-Signature invalide)
 $secret = Read-Host "Webhook secret"

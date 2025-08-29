@@ -78,7 +78,7 @@ backend/
 ## API Documentation
 
 L'API est documentée avec Swagger/OpenAPI. Accédez à la documentation à l'adresse :
-`http://localhost:8000/api/docs/`
+`http://localhost:8081/api/docs/`
 
 ## Tests
 

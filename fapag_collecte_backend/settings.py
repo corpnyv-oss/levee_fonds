@@ -149,10 +149,13 @@ ENABLE_EMAIL_VERIFICATION = ENV.get('ENABLE_EMAIL_VERIFICATION', 'True').lower()
 
 # ===== SECURITY SETTINGS =====
 # Host/domain names that this Django site can serve
-ALLOWED_HOSTS = ENV.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+ALLOWED_HOSTS = ENV.get('ALLOWED_HOSTS', 'localhost,127.0.0.1,0.0.0.0,::1').split(',')
 
 # CSRF settings
-CSRF_TRUSTED_ORIGINS = ENV.get('CSRF_TRUSTED_ORIGINS', 'http://localhost:8000,http://127.0.0.1:8000').split(',')
+CSRF_TRUSTED_ORIGINS = ENV.get(
+    'CSRF_TRUSTED_ORIGINS',
+    'http://localhost:8000,http://127.0.0.1:8000,http://localhost:8081,http://127.0.0.1:8081'
+).split(',')
 CSRF_COOKIE_SECURE = not DEBUG
 CSRF_COOKIE_HTTPONLY = True
 CSRF_USE_SESSIONS = True
@@ -689,7 +692,7 @@ CORS_ALLOW_METHODS = [
 ]
 
 # ===== CSRF CONFIGURATION =====
-CSRF_TRUSTED_ORIGINS = ENV.get('CSRF_TRUSTED_ORIGINS', 'http://localhost:3000,http://127.0.0.1:3000').split(',')
+CSRF_TRUSTED_ORIGINS = ENV.get('CSRF_TRUSTED_ORIGINS', 'http://localhost:3000,http://127.0.0.1:3000,http://localhost:8081,http://127.0.0.1:8081').split(',')
 CSRF_COOKIE_HTTPONLY = ENV.get('CSRF_COOKIE_HTTPONLY', 'True').lower() == 'true'
 CSRF_COOKIE_SECURE = not DEBUG
 CSRF_COOKIE_SAMESITE = ENV.get('CSRF_COOKIE_SAMESITE', 'Lax')
