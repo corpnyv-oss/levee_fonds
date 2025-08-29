@@ -16,22 +16,20 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-from django.http import JsonResponse, HttpResponse
-from django.shortcuts import render
-from django.views.generic import TemplateView
+from django.http import JsonResponse
 from rest_framework import permissions
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 from . import views
-from axes.decorators import axes_dispatch
 from django.views.decorators.csrf import ensure_csrf_cookie
-from django.conf import settings
-
-# Activation de l'authentification à deux facteurs
+from axes.decorators import axes_dispatch
+from django.shortcuts import render
 from two_factor.urls import urlpatterns as tf_urls
-# Désactivé temporairement pour les migrations
-# from two_factor.gateways.twilio.urls import urlpatterns as tf_twilio_urls
-# from two_factor.gateways.twilio.views import PhoneSetupView, PhoneDeleteView
+from django.conf import settings
+from rest_framework_simplejwt.views import (
+    TokenObtainPairView,
+    TokenRefreshView,
+)
 
 schema_view = get_schema_view(
     openapi.Info(
@@ -40,7 +38,8 @@ schema_view = get_schema_view(
         description="Documentation de l'API de collecte de fonds",
     ),
     public=True,
-    permission_classes=(permissions.AllowAny,),
+    # Use a flat tuple of permission classes (avoid nested tuple)
+    permission_classes=(permissions.AllowAny,) if settings.DEBUG else (permissions.IsAdminUser,),
 )
 
 @ensure_csrf_cookie
@@ -65,24 +64,21 @@ two_factor_patterns = [
 urlpatterns = [
     # Page d'accueil (accessible sans authentification)
     path('', views.accueil, name='accueil'),
-    
-    # Authentification à deux facteurs
-    path('account/', include(two_factor_patterns)),
-    
-    # Page de verrouillage de compte
-    path('locked-out/', locked_out_view, name='account_locked'),
+    # Health check
+    path('healthz/', views.health, name='healthz'),
+    # Page de verrouillage de compte (django-axes)
+    path('locked-out/', locked_out_view, name='axes_locked_out'),
     
     # Administration
     path('admin/', admin.site.urls),
     
     # API
     path('api/', include('collecte.urls')),
+    # JWT Auth endpoints
+    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    
+    # Documentation (accessible sans authentification)
+    path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
+    path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
 ]
-
-# Documentation: activable seulement en DEBUG ou si ENABLE_API_DOCS=True
-ENABLE_API_DOCS = getattr(settings, 'ENABLE_API_DOCS', False)
-if settings.DEBUG or ENABLE_API_DOCS:
-    urlpatterns += [
-        path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
-        path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
-    ]

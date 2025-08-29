@@ -1,55 +1,79 @@
-"""
-Exceptions personnalisées pour l'API
-"""
-from rest_framework.views import exception_handler
+from rest_framework.views import exception_handler as drf_exception_handler
 from rest_framework.response import Response
 from rest_framework import status
+from django.conf import settings
+import logging
+import traceback
+
+logger = logging.getLogger(__name__)
 
 def custom_exception_handler(exc, context):
-    # Appel au gestionnaire d'exceptions par défaut
-    response = exception_handler(exc, context)
+    """
+    DRF custom exception handler that:
+    - Delegates to DRF's default handler first
+    - Formats errors consistently for clients (Postman/Frontend)
+    - Avoids leaking internal details while logging enough on the server
+    """
+    response = drf_exception_handler(exc, context)
 
-    # Si c'est une erreur non gérée par DRF
-    if response is None:
-        return Response(
-            {
-                'error': 'Une erreur serveur est survenue',
-                'status_code': status.HTTP_500_INTERNAL_SERVER_ERROR,
-                'details': str(exc) if str(exc) else 'Aucun détail disponible'
-            },
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR
-        )
+    view = context.get('view')
+    request = context.get('request')
+    endpoint = getattr(view, '__class__', type(view)).__name__ if view else 'unknown'
+    path = getattr(request, 'path', 'unknown')
 
-    # Personnalisation des erreurs d'authentification
-    if response.status_code == status.HTTP_401_UNAUTHORIZED:
-        response.data = {
-            'error': 'Non authentifié',
-            'status_code': status.HTTP_401_UNAUTHORIZED,
-            'details': 'Les informations d\'authentification n\'ont pas été fournies.'
-        }
-    
-    # Personnalisation des erreurs d'autorisation
-    elif response.status_code == status.HTTP_403_FORBIDDEN:
-        response.data = {
-            'error': 'Permission refusée',
-            'status_code': status.HTTP_403_FORBIDDEN,
-            'details': 'Vous n\'avez pas la permission d\'effectuer cette action.'
-        }
-    
-    # Personnalisation des erreurs 404
-    elif response.status_code == status.HTTP_404_NOT_FOUND:
-        response.data = {
-            'error': 'Non trouvé',
-            'status_code': status.HTTP_404_NOT_FOUND,
-            'details': 'La ressource demandée n\'a pas été trouvée.'
-        }
-    
-    # Pour toutes les autres erreurs
-    else:
-        response.data = {
-            'error': response.data.get('detail', 'Une erreur est survenue'),
+    if response is not None:
+        # Known DRF exceptions: normalize structure
+        data = {
+            'error': True,
+            'message': _extract_message(response.data),
+            'details': response.data,
             'status_code': response.status_code,
-            'details': response.data
+            'endpoint': endpoint,
+            'path': path,
         }
+        # In DEBUG, attach extra info to help during development
+        if settings.DEBUG:
+            data['exc_type'] = type(exc).__name__
+            data['trace'] = traceback.format_exc()
+        response.data = data
+        return response
 
-    return response
+    # Unknown/unhandled exceptions -> return 500 without internal details
+    logger.exception('Unhandled exception at %s (%s)', path, endpoint, exc_info=exc)
+    payload = {
+        'error': True,
+        'status_code': status.HTTP_500_INTERNAL_SERVER_ERROR,
+        'endpoint': endpoint,
+        'path': path,
+    }
+    if settings.DEBUG:
+        # Reveal details only in development
+        payload.update({
+            'message': str(exc) or 'Unhandled error',
+            'exc_type': type(exc).__name__,
+            'trace': traceback.format_exc(),
+        })
+    else:
+        payload['message'] = "Une erreur de serveur s'est produite. Veuillez contacter l'administrateur."
+    return Response(payload, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+def _extract_message(data):
+    """Try to extract a human-friendly message from DRF error payloads."""
+    if isinstance(data, dict):
+        # Prefer 'detail' or 'message' keys if present
+        for key in ('detail', 'message', 'error'):
+            if key in data:
+                val = data[key]
+                if isinstance(val, (list, tuple)) and val:
+                    return str(val[0])
+                return str(val)
+        # Fallback: join first errors
+        if data:
+            key, val = next(iter(data.items()))
+            if isinstance(val, (list, tuple)) and val:
+                return f"{key}: {val[0]}"
+            return f"{key}: {val}"
+    elif isinstance(data, (list, tuple)) and data:
+        return str(data[0])
+    return 'Requête invalide'

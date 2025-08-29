@@ -1,37 +1,26 @@
-from django.http import JsonResponse, HttpResponse
-from django.template.loader import render_to_string
-from django.views.decorators.http import require_http_methods
-from django_ratelimit.exceptions import Ratelimited
+from django.http import JsonResponse, HttpRequest
+from django.conf import settings
 
-def accueil(request):
-    """
-    Vue d'accueil simple sans authentification
-    """
+
+def accueil(request: HttpRequest) -> JsonResponse:
+    """Accueil du backend: simple JSON informatif."""
     return JsonResponse({
-        'message': 'Bienvenue sur l\'API de collecte de fonds FAPAG',
-        'endpoints': {
-            'documentation': '/swagger/',
-            'api': '/api/',
-            'admin': '/admin/'
+        "app": "fapag_collecte_backend",
+        "message": "Bienvenue sur l'API de collecte de fonds FAPAG",
+        "endpoints": {
+            "documentation": "/swagger/",
+            "api": "/api/",
+            "admin": "/admin/",
+            "health": "/healthz/",
         },
-        'status': 'opérationnel'
+        "debug": bool(getattr(settings, "DEBUG", False)),
+        "status": "operational",
     })
 
 
-def ratelimited_error(request, exception=None):
-    """
-    Vue personnalisée pour les erreurs de rate limiting
-    """
-    response = JsonResponse({
-        'error': 'Too many requests',
-        'message': 'Vous avez dépassé le nombre de tentatives autorisées. Veuillez réessayer plus tard.',
-        'status_code': 429
-    }, status=429)
-    
-    # Ajout des en-têtes de rate limiting
-    if hasattr(exception, 'wait'):
-        wait = exception.wait()
-        response['Retry-After'] = str(wait)
-        response['X-RateLimit-Reset'] = str(wait)
-    
-    return response
+def health(request: HttpRequest) -> JsonResponse:
+    """Endpoint de health-check très léger (sans accès DB)."""
+    return JsonResponse({
+        "status": "ok",
+        "app": "fapag_collecte_backend",
+    })

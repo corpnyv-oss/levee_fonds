@@ -109,6 +109,12 @@ LOGGING = {
             'level': 'INFO',
             'propagate': False,
         },
+        # Affiche les logs d'accès du serveur de dev (GET /...) dans la console
+        'django.server': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
     },
     'root': {
         'handlers': ['console', 'file', 'error_file'],
@@ -180,6 +186,9 @@ if DEBUG:
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_AGE = 1209600  # 2 semaines en secondes
     SESSION_SAVE_EVERY_REQUEST = True
+    # Utiliser des cookies signés pour les sessions en DEV afin d'éviter un accès DB
+    # sur chaque requête (utile quand la base distante est lente/indisponible)
+    SESSION_ENGINE = 'django.contrib.sessions.backends.signed_cookies'
 
 SECURE_HSTS_SECONDS = int(ENV.get('SECURE_HSTS_SECONDS', '31536000'))  # 1 year
 SECURE_HSTS_INCLUDE_SUBDOMAINS = ENV.get('SECURE_HSTS_INCLUDE_SUBDOMAINS', 'True') == 'True'
@@ -239,7 +248,8 @@ PASSWORD_HASHERS = [
 ]
 
 # Configuration de la politique de sécurité des sessions
-SESSION_ENGINE = 'django.contrib.sessions.backends.db'
+# Utiliser cookies signés en DEBUG pour éviter un accès DB sur chaque requête
+SESSION_ENGINE = 'django.contrib.sessions.backends.db' if not DEBUG else 'django.contrib.sessions.backends.signed_cookies'
 SESSION_COOKIE_AGE = 1209600  # 2 semaines en secondes
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 SESSION_COOKIE_SAMESITE = 'Lax'  # ou 'Strict' pour plus de sécurité
@@ -361,6 +371,10 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django_ratelimit.middleware.RatelimitMiddleware',
 ]
+
+# En développement, éviter les accès DB inutiles qui peuvent faire « pend » les requêtes
+if DEBUG:
+    MIDDLEWARE = [m for m in MIDDLEWARE if m != 'axes.middleware.AxesMiddleware']
 
 ROOT_URLCONF = 'fapag_collecte_backend.urls'
 
@@ -549,9 +563,6 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',
     ),
-    
-    # Custom exception handler
-    'EXCEPTION_HANDLER': 'fapag_collecte_backend.exceptions.custom_exception_handler',
     
     # Pagination
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
@@ -884,7 +895,7 @@ SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 # Configuration CSP avancée - Toutes les directives sont maintenant dans CONTENT_SECURITY_POLICY
 
 # Rate limiting
-RATELIMIT_VIEW = 'collecte.views.ratelimited_error'
+RATELIMIT_VIEW = 'fapag_collecte_backend.views.ratelimited_error'
 RATELIMIT_ENABLE = True
 RATELIMIT_USE_CACHE = 'default'
 
@@ -936,14 +947,12 @@ if DEBUG:
     # Désactiver la vérification du host header
     USE_X_FORWARDED_HOST = False
     
-    # Désactiver la validation du host
-    import django.http.request
-    django.http.request.host_validation_re = lambda *args, **kwargs: True
+    # Garder un DEBUG permissif sans casser la validation interne de Django
+    # ALLOWED_HOSTS est déjà défini à ['*'] et USE_X_FORWARDED_HOST = False ci-dessus,
+    # donc pas besoin de surcharger host_validation_re.
     import socket
     hostname, _, ips = socket.gethostbyname_ex(socket.gethostname())
-    INTERNAL_IPS = [ip[: ip.rfind(".")] + ".1" for ip in ips] + ["127.0.0.1", "10.0.2.2"]
-    
-    # Désactiver la validation du host header pour le développement
+    INTERNAL_IPS = [ip[: ip.rfind('.') ] + '.1' for ip in ips] + ["127.0.0.1", "10.0.2.2"]
     DEBUG_PROPAGATE_EXCEPTIONS = True
 
 

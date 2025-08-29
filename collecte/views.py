@@ -3,14 +3,10 @@ from django.http import JsonResponse
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
-from rest_framework.permissions import AllowAny
-
 class AccueilView(APIView):
     """
     Vue d'accueil de l'API de collecte de fonds
     """
-    permission_classes = [AllowAny]  # Permet l'accès sans authentification
-    
     def get(self, request):
         return Response({
             'message': 'Bienvenue sur l\'API de collecte de fonds FAPAG',
