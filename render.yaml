@@ -8,11 +8,19 @@ services:
       - key: PYTHON_VERSION
         value: 3.9.10
       - key: DJANGO_SETTINGS_MODULE
-        value: fapag_collecte_backend.settings
+        value: fapag_collecte_backend.production_settings
       - key: PYTHONUNBUFFERED
         value: "True"
       - key: GUNICORN_CMD_ARGS
         value: "--workers 4 --worker-class gthread --threads 2 --timeout 120"
+      - key: DEBUG
+        value: "False"
+      - key: ALLOWED_HOSTS
+        value: "corpnyv-project.onrender.com,localhost,127.0.0.1"
+      - key: CSRF_TRUSTED_ORIGINS
+        value: "https://corpnyv-project.onrender.com,http://localhost:3000"
+      - key: CORS_ALLOWED_ORIGINS
+        value: "https://corpnyv-project.onrender.com,http://localhost:3000"
     plan: free
     region: frankfurt  # Pour une meilleure latence avec l'Europe
     autoDeploy: true

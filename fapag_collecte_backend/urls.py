@@ -25,6 +25,7 @@ from drf_yasg import openapi
 from . import views
 from axes.decorators import axes_dispatch
 from django.views.decorators.csrf import ensure_csrf_cookie
+from django.conf import settings
 
 # Activation de l'authentification à deux facteurs
 from two_factor.urls import urlpatterns as tf_urls
@@ -76,8 +77,12 @@ urlpatterns = [
     
     # API
     path('api/', include('collecte.urls')),
-    
-    # Documentation (accessible sans authentification)
-    path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
-    path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
 ]
+
+# Documentation: activable seulement en DEBUG ou si ENABLE_API_DOCS=True
+ENABLE_API_DOCS = getattr(settings, 'ENABLE_API_DOCS', False)
+if settings.DEBUG or ENABLE_API_DOCS:
+    urlpatterns += [
+        path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
+        path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
+    ]

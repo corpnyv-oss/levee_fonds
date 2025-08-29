@@ -21,6 +21,7 @@ django-csp>=3.7,<4.0.0
 django-environ>=0.11.2,<1.0.0
 python-dotenv>=1.0.0,<2.0.0
 django-sslserver==0.22  # Pour le développement local avec HTTPS
+django-ratelimit>=4.1.0,<5.0.0  # Pour le throttling/rate limiting
 
 # API
 drf-yasg>=1.21.7,<2.0.0  # Pour la documentation Swagger
@@ -61,3 +62,4 @@ python-dateutil==2.8.2
 pytz==2023.3  # Gestion des fuseaux horaires
 requests==2.31.0  # Pour les requêtes HTTP
 boto3==1.26.0  # Pour le stockage S3 (optionnel)
+

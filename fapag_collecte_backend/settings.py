@@ -36,7 +36,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 ENV = os.environ.copy()
 
 # Configuration de l'authentification
-AUTH_USER_MODEL = 'collecte.CustomUser'
+AUTH_USER_MODEL = 'collecte.Utilisateur'
 
 # Configuration de la journalisation
 LOGGING = {
@@ -169,6 +169,18 @@ AXES_LOCKOUT_URL = '/locked-out/'
 AXES_VERBOSE = True
 AXES_RESET_ON_SUCCESS = True  # Réinitialiser le compteur après une connexion réussie
 
+if DEBUG:
+    SECURE_HSTS_SECONDS = 0  # Désactivé en dev
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = False
+    SECURE_HSTS_PRELOAD = False
+    SECURE_SSL_REDIRECT = False
+    SESSION_COOKIE_SECURE = False
+    CSRF_COOKIE_SECURE = False
+    CSRF_COOKIE_HTTPONLY = True
+    SESSION_COOKIE_HTTPONLY = True
+    SESSION_COOKIE_AGE = 1209600  # 2 semaines en secondes
+    SESSION_SAVE_EVERY_REQUEST = True
+
 SECURE_HSTS_SECONDS = int(ENV.get('SECURE_HSTS_SECONDS', '31536000'))  # 1 year
 SECURE_HSTS_INCLUDE_SUBDOMAINS = ENV.get('SECURE_HSTS_INCLUDE_SUBDOMAINS', 'True') == 'True'
 SECURE_HSTS_PRELOAD = ENV.get('SECURE_HSTS_PRELOAD', 'True') == 'True'
@@ -198,18 +210,6 @@ CONTENT_SECURITY_POLICY = {
         'block-all-mixed-content': ''
     }
 }
-
-# Configuration de la politique de sécurité des en-têtes
-SECURE_HSTS_SECONDS = 0  # Désactivé
-SECURE_HSTS_INCLUDE_SUBDOMAINS = False
-SECURE_HSTS_PRELOAD = False
-SECURE_SSL_REDIRECT = False
-SESSION_COOKIE_SECURE = False
-CSRF_COOKIE_SECURE = False
-CSRF_COOKIE_HTTPONLY = True
-SESSION_COOKIE_HTTPONLY = True
-SESSION_COOKIE_AGE = 1209600  # 2 semaines en secondes
-SESSION_SAVE_EVERY_REQUEST = True
 
 # Configuration de la politique de sécurité des mots de passe
 AUTH_PASSWORD_VALIDATORS = [
@@ -274,28 +274,6 @@ PERMISSIONS_POLICY = {
 }
 
 # Application definition
-
-# Configuration du logging
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'handlers': {
-        'console': {
-            'class': 'logging.StreamHandler',
-            'formatter': 'verbose',
-        },
-    },
-    'formatters': {
-        'verbose': {
-            'format': '{levelname} {asctime} {module} {message}',
-            'style': '{',
-        },
-    },
-    'root': {
-        'handlers': ['console'],
-        'level': 'INFO',
-    },
-}
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -427,42 +405,6 @@ DATABASES['default']['OPTIONS'] = {
     'sslmode': 'require',
     'client_encoding': 'UTF8',
 }
-
-# Password validation
-AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-        'OPTIONS': {
-            'max_similarity': 0.7,
-        }
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-        'OPTIONS': {
-            'min_length': 12,
-        }
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
-]
-
-# Password hashers
-PASSWORD_HASHERS = [
-    'django.contrib.auth.hashers.Argon2PasswordHasher',
-    'django.contrib.auth.hashers.PBKDF2PasswordHasher',
-    'django.contrib.auth.hashers.PBKDF2SHA1PasswordHasher',
-    'django.contrib.auth.hashers.BCryptSHA256PasswordHasher',
-]
-
-# Session settings
-SESSION_COOKIE_AGE = 1209600  # 2 weeks in seconds
-SESSION_COOKIE_HTTPONLY = True
-SESSION_SAVE_EVERY_REQUEST = True
-SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 
 # Login URL
 LOGIN_URL = 'two_factor:login'
@@ -965,29 +907,9 @@ if IS_PROD:
             if host not in ('localhost', '127.0.0.1')
         ]
 
-# Logging & audit
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'formatters': {
-        'verbose': {
-            'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
-            'style': '{',
-        },
-    },
-    'handlers': {
-        'console': {
-            'class': 'logging.StreamHandler',
-            'formatter': 'verbose',
-        },
-    },
-    'root': {
-        'handlers': ['console'],
-        'level': 'INFO',
-    },
-}
+# Logging & audit (consolidé en haut; suppression de la redéfinition)
 
-AUTH_USER_MODEL = 'collecte.Utilisateur'
+# AUTH_USER_MODEL défini en haut; suppression de la redéfinition pour cohérence
 
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
@@ -996,12 +918,33 @@ AUTHENTICATION_BACKENDS = [
 
 SWAGGER_USE_COMPAT_RENDERERS = False
 
-# En développement, permettre tous les hôtes si DEBUG est True
+# En développement, désactiver la vérification du host
 if DEBUG:
+    # Désactiver la validation du host
     ALLOWED_HOSTS = ['*']
+    
+    # Désactiver toutes les vérifications de sécurité pour le développement
+    SECURE_SSL_REDIRECT = False
+    SECURE_HSTS_SECONDS = 0
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = False
+    SECURE_HSTS_PRELOAD = False
+    SESSION_COOKIE_SECURE = False
+    CSRF_COOKIE_SECURE = False
+    SECURE_PROXY_SSL_HEADER = None
+    APPEND_SLASH = False
+    
+    # Désactiver la vérification du host header
+    USE_X_FORWARDED_HOST = False
+    
+    # Désactiver la validation du host
+    import django.http.request
+    django.http.request.host_validation_re = lambda *args, **kwargs: True
     import socket
     hostname, _, ips = socket.gethostbyname_ex(socket.gethostname())
     INTERNAL_IPS = [ip[: ip.rfind(".")] + ".1" for ip in ips] + ["127.0.0.1", "10.0.2.2"]
+    
+    # Désactiver la validation du host header pour le développement
+    DEBUG_PROPAGATE_EXCEPTIONS = True
 
 
 # Désactiver CSP pour les migrations

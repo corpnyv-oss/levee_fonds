@@ -9,6 +9,14 @@ from pathlib import Path
 from decouple import config, Csv
 import dj_database_url
 from .settings import *
+import logging
+
+# Sentry (optionnel mais recommandé)
+try:
+    import sentry_sdk
+    from sentry_sdk.integrations.django import DjangoIntegration
+except Exception:
+    sentry_sdk = None
 
 # Détecter si on est sur Render
 IS_RENDER = os.getenv('RENDER', '').lower() == 'true'
@@ -91,6 +99,22 @@ SESSION_COOKIE_HTTPONLY = config('SESSION_COOKIE_HTTPONLY', default=True, cast=b
 SESSION_COOKIE_SAMESITE = config('SESSION_COOKIE_SAMESITE', default='Lax')
 SESSION_SAVE_EVERY_REQUEST = config('SESSION_SAVE_EVERY_REQUEST', default=False, cast=bool)
 
+# ===== CONTENT SECURITY POLICY (django-csp) =====
+# -----------------------------------------------
+# Activer une CSP stricte en production. Ajuster selon les besoins front/CDN.
+CSP_DEFAULT_SRC = ("'self'",)
+CSP_SCRIPT_SRC = ("'self'",)
+CSP_STYLE_SRC = ("'self'",)
+CSP_IMG_SRC = ("'self'", 'data:')
+CSP_FONT_SRC = ("'self'", 'data:')
+CSP_CONNECT_SRC = ("'self'",)
+CSP_FRAME_ANCESTORS = ("'none'",)
+CSP_BASE_URI = ("'self'",)
+CSP_OBJECT_SRC = ("'none'",)
+CSP_FRAME_SRC = ("'none'",)
+CSP_FORM_ACTION = ("'self'",)
+CSP_UPGRADE_INSECURE_REQUESTS = True
+
 # ===== MESSAGERIE =====
 # ---------------------
 EMAIL_BACKEND = config('EMAIL_BACKEND', default='django.core.mail.backends.console.EmailBackend')
@@ -104,8 +128,17 @@ SERVER_EMAIL = config('SERVER_EMAIL', default=DEFAULT_FROM_EMAIL)
 
 # ===== CORS =====
 # ----------------
+CORS_ALLOW_ALL_ORIGINS = False  # Interdit en production
 CORS_ALLOWED_ORIGINS = config('CORS_ALLOWED_ORIGINS', default='', cast=Csv())
 CORS_ALLOW_CREDENTIALS = config('CORS_ALLOW_CREDENTIALS', default=True, cast=bool)
+if not DEBUG and not CORS_ALLOWED_ORIGINS:
+    import warnings
+    warnings.warn("CORS_ALLOWED_ORIGINS est vide en production. Définissez vos domaines autorisés.")
+
+# ===== FEATURES FLAGS =====
+# --------------------------
+# Contrôle de l'exposition de la documentation API en production
+ENABLE_API_DOCS = config('ENABLE_API_DOCS', default=False, cast=bool)
 
 # ===== CACHE =====
 # ----------------
@@ -236,3 +269,16 @@ LOGGING = {
 
 # Créer le dossier de logs s'il n'existe pas
 os.makedirs(os.path.join(BASE_DIR, 'logs'), exist_ok=True)
+
+# ===== SENTRY INIT =====
+# ----------------------
+SENTRY_DSN = config('SENTRY_DSN', default='')
+if sentry_sdk and SENTRY_DSN:
+    sentry_sdk.init(
+        dsn=SENTRY_DSN,
+        integrations=[DjangoIntegration()],
+        traces_sample_rate=config('SENTRY_TRACES_SAMPLE_RATE', default=0.0, cast=float),
+        send_default_pii=config('SENTRY_SEND_PII', default=False, cast=bool),
+        environment=config('SENTRY_ENVIRONMENT', default='production'),
+    )
+
