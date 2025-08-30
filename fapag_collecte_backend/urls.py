@@ -29,6 +29,7 @@ from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
 )
+from collecte.webhook_views import psp_webhook, test_webhook
 
 schema_view = get_schema_view(
     openapi.Info(
@@ -59,6 +60,10 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     # 2FA - Temporairement désactivé pour corriger les erreurs
     # path('account/', include('two_factor.urls')),
+    
+    # Webhooks sécurisés (en dehors de l'API DRF)
+    path('webhooks/psp/', psp_webhook, name='psp_webhook'),
+    path('webhooks/test/', test_webhook, name='test_webhook'),
     
     # API
     path('api/', include('collecte.urls')),

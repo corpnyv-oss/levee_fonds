@@ -2,27 +2,9 @@ from django.shortcuts import render
 from django.http import JsonResponse
 from rest_framework.views import APIView
 from rest_framework.response import Response
-
-class AccueilView(APIView):
-    """
-    Vue d'accueil de l'API de collecte de fonds
-    """
-    def get(self, request):
-        return Response({
-            'message': 'Bienvenue sur l\'API de collecte de fonds FAPAG',
-            'endpoints': {
-                'documentation': '/swagger/',
-                'api': '/api/',
-                'admin': '/admin/'
-            },
-            'status': 'opérationnel'
-        })
 from rest_framework import viewsets, permissions
-from rest_framework.decorators import action
-from rest_framework.response import Response
-from rest_framework.views import APIView
-from django.conf import settings
-from django.db import transaction
+from django_ratelimit.decorators import ratelimit
+from django.utils.decorators import method_decorator
 from django.utils import timezone
 from datetime import timedelta
 import json
@@ -39,11 +21,33 @@ from .payments.singpay import SingPayClient, verify_signature, extract_provider_
 
 # Create your views here.
 
+class AccueilView(APIView):
+    """
+    Vue d'accueil de l'API de collecte de fonds
+    """
+    def get(self, request):
+        return Response({
+            'message': 'Bienvenue sur l\'API de collecte de fonds FAPAG',
+            'endpoints': {
+                'documentation': '/swagger/',
+                'api': '/api/',
+                'admin': '/admin/'
+            },
+            'status': 'opérationnel'
+        })
+
+@method_decorator(ratelimit(key='ip', rate='10/m', method='GET'), name='dispatch')
+@method_decorator(ratelimit(key='ip', rate='5/m', method='POST'), name='dispatch')
 class CagnotteViewSet(viewsets.ModelViewSet):
     queryset = Cagnotte.objects.all()
     serializer_class = CagnotteSerializer
     permission_classes = [IsAdminOrReadOnly]
 
+@method_decorator(ratelimit(key='ip', rate='20/m', method='GET'), name='dispatch')
+@method_decorator(ratelimit(key='ip', rate='10/m', method='POST'), name='dispatch')
+@method_decorator(ratelimit(key='ip', rate='5/m', method='PUT'), name='dispatch')
+@method_decorator(ratelimit(key='ip', rate='5/m', method='PATCH'), name='dispatch')
+@method_decorator(ratelimit(key='ip', rate='3/m', method='DELETE'), name='dispatch')
 class ParticipationViewSet(viewsets.ModelViewSet):
     queryset = Participation.objects.all()
     serializer_class = ParticipationSerializer
@@ -60,7 +64,11 @@ class ParticipationViewSet(viewsets.ModelViewSet):
         # Empêche l'usurpation: force l'utilisateur courant
         serializer.save(utilisateur=self.request.user)
 
-    @action(detail=True, methods=['post'], url_path='init-singpay')
+    @method_decorator(ratelimit(key='ip', rate='20/m', method='GET'), name='dispatch')
+    @method_decorator(ratelimit(key='ip', rate='10/m', method='POST'), name='dispatch')
+    @method_decorator(ratelimit(key='ip', rate='5/m', method='PUT'), name='dispatch')
+    @method_decorator(ratelimit(key='ip', rate='5/m', method='PATCH'), name='dispatch')
+    @method_decorator(ratelimit(key='ip', rate='3/m', method='DELETE'), name='dispatch')
     def init_singpay(self, request, pk=None):
         participation = self.get_object()
         client = SingPayClient()
@@ -97,6 +105,11 @@ class ParticipationViewSet(viewsets.ModelViewSet):
         payment_url = payload.get('payment_url') or payload.get('checkout_url')
         return Response({'payment_url': payment_url, 'transaction_id': txn.id})
 
+@method_decorator(ratelimit(key='ip', rate='20/m', method='GET'), name='dispatch')
+@method_decorator(ratelimit(key='ip', rate='10/m', method='POST'), name='dispatch')
+@method_decorator(ratelimit(key='ip', rate='5/m', method='PUT'), name='dispatch')
+@method_decorator(ratelimit(key='ip', rate='5/m', method='PATCH'), name='dispatch')
+@method_decorator(ratelimit(key='ip', rate='3/m', method='DELETE'), name='dispatch')
 class TransactionViewSet(viewsets.ModelViewSet):
     queryset = Transaction.objects.all()
     serializer_class = TransactionSerializer
@@ -109,16 +122,31 @@ class TransactionViewSet(viewsets.ModelViewSet):
         # Restreindre aux transactions liées aux participations de l'utilisateur
         return super().get_queryset().filter(participation__utilisateur=user)
 
+@method_decorator(ratelimit(key='ip', rate='5/m', method='GET'), name='dispatch')
+@method_decorator(ratelimit(key='ip', rate='2/m', method='POST'), name='dispatch')
+@method_decorator(ratelimit(key='ip', rate='2/m', method='PUT'), name='dispatch')
+@method_decorator(ratelimit(key='ip', rate='2/m', method='PATCH'), name='dispatch')
+@method_decorator(ratelimit(key='ip', rate='1/m', method='DELETE'), name='dispatch')
 class WebhookEventViewSet(viewsets.ModelViewSet):
     queryset = WebhookEvent.objects.all()
     serializer_class = WebhookEventSerializer
     permission_classes = [permissions.IsAdminUser]
 
+@method_decorator(ratelimit(key='ip', rate='10/m', method='GET'), name='dispatch')
+@method_decorator(ratelimit(key='ip', rate='3/m', method='POST'), name='dispatch')
+@method_decorator(ratelimit(key='ip', rate='2/m', method='PUT'), name='dispatch')
+@method_decorator(ratelimit(key='ip', rate='2/m', method='PATCH'), name='dispatch')
+@method_decorator(ratelimit(key='ip', rate='1/m', method='DELETE'), name='dispatch')
 class ActualiteViewSet(viewsets.ModelViewSet):
     queryset = Actualite.objects.all()
     serializer_class = ActualiteSerializer
     permission_classes = [IsAdminOrReadOnly]
 
+@method_decorator(ratelimit(key='ip', rate='5/m', method='GET'), name='dispatch')
+@method_decorator(ratelimit(key='ip', rate='2/m', method='POST'), name='dispatch')
+@method_decorator(ratelimit(key='ip', rate='2/m', method='PUT'), name='dispatch')
+@method_decorator(ratelimit(key='ip', rate='2/m', method='PATCH'), name='dispatch')
+@method_decorator(ratelimit(key='ip', rate='1/m', method='DELETE'), name='dispatch')
 class UtilisateurViewSet(viewsets.ModelViewSet):
     queryset = Utilisateur.objects.all()
     serializer_class = UtilisateurSerializer

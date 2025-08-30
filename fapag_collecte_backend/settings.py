@@ -965,3 +965,18 @@ if DEBUG:
 import sys
 if 'migrate' in sys.argv:
     MIDDLEWARE = [m for m in MIDDLEWARE if not m.startswith('csp.middleware')]
+
+# ===== WEBHOOK SECURITY CONFIGURATION =====
+# Clé secrète pour la vérification HMAC des webhooks
+WEBHOOK_SECRET_KEY = ENV.get('WEBHOOK_SECRET_KEY', 'change-this-in-production')
+# Liste des IPs autorisées pour les webhooks (vide = toutes autorisées en dev)
+WEBHOOK_ALLOWED_IPS = ENV.get('WEBHOOK_ALLOWED_IPS', '').split(',') if ENV.get('WEBHOOK_ALLOWED_IPS') else []
+# Fenêtre de temps pour l'horodatage des webhooks (en secondes)
+WEBHOOK_TIMESTAMP_WINDOW = int(ENV.get('WEBHOOK_TIMESTAMP_WINDOW', 300))  # 5 minutes
+
+# ===== RATE LIMITING CONFIGURATION =====
+# Limitation de débit pour l'API
+RATE_LIMIT_AUTH = int(ENV.get('RATE_LIMIT_AUTH', 5))  # 5 tentatives par fenêtre
+RATE_LIMIT_AUTH_WINDOW = int(ENV.get('RATE_LIMIT_AUTH_WINDOW', 300))  # 5 minutes
+RATE_LIMIT_PARTICIPATIONS = int(ENV.get('RATE_LIMIT_PARTICIPATIONS', 10))  # 10 par minute
+RATE_LIMIT_WEBHOOKS = int(ENV.get('RATE_LIMIT_WEBHOOKS', 100))  # 100 par minute
