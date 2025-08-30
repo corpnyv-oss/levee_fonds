@@ -24,7 +24,6 @@ from . import views
 from django.views.decorators.csrf import ensure_csrf_cookie
 from axes.decorators import axes_dispatch
 from django.shortcuts import render
-from two_factor.urls import urlpatterns as tf_urls
 from django.conf import settings
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
@@ -48,20 +47,6 @@ schema_view = get_schema_view(
 def locked_out_view(request, *args, **kwargs):    
     return render(request, 'account_locked.html', status=403)
 
-# URLs pour l'authentification à deux facteurs
-two_factor_patterns = [
-    # Désactivé temporairement pour les migrations
-    # path('account/two_factor/twilio/setup/', PhoneSetupView.as_view(), name='phone_setup'),
-    # path('account/two_factor/twilio/setup/<int:pk>/', PhoneSetupView.as_view(), name='phone_setup'),
-    # path('account/two_factor/twilio/delete/<int:pk>/', PhoneDeleteView.as_view(), name='phone_delete'),
-    path('', include(tf_urls)),
-    # Désactivé temporairement pour les migrations
-    # path('', include(tf_twilio_urls)),
-    # Vues personnalisées pour la configuration des numéros de téléphone (désactivées pour les migrations)
-    # path('phone/setup/', PhoneSetupView.as_view(), name='phone_setup'),
-    # path('phone/delete/<int:pk>/', PhoneDeleteView.as_view(), name='phone_delete'),
-]
-
 urlpatterns = [
     # Page d'accueil (accessible sans authentification)
     path('', views.accueil, name='accueil'),
@@ -72,6 +57,7 @@ urlpatterns = [
     
     # Administration
     path('admin/', admin.site.urls),
+    path('', include('fapag_collecte_backend.two_factor_urls', namespace='two_factor')),
     
     # API
     path('api/', include('collecte.urls')),
