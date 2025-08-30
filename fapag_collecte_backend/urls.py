@@ -30,10 +30,11 @@ from rest_framework_simplejwt.views import (
     TokenRefreshView,
 )
 from collecte.webhook_views import psp_webhook, test_webhook
-from collecte.views_2fa import (
-    setup_2fa, verify_2fa_setup, login_with_2fa,
-    verify_backup_code, get_2fa_status, regenerate_backup_codes
-)
+# 2FA temporairement désactivé pour résoudre l'erreur pyotp
+# from collecte.views_2fa import (
+#     setup_2fa, verify_2fa_setup, login_with_2fa,
+#     verify_backup_code, get_2fa_status, regenerate_backup_codes
+# )
 from collecte.views_registration import (
     public_registration, check_email_availability,
     validate_password_strength, registration_info
@@ -73,13 +74,13 @@ urlpatterns = [
     path('webhooks/psp/', psp_webhook, name='psp_webhook'),
     path('webhooks/test/', test_webhook, name='test_webhook'),
     
-    # 2FA - Système robuste et simple
-    path('2fa/setup/', setup_2fa, name='setup_2fa'),
-    path('2fa/verify-setup/', verify_2fa_setup, name='verify_2fa_setup'),
-    path('2fa/login/', login_with_2fa, name='login_with_2fa'),
-    path('2fa/backup/', verify_backup_code, name='verify_backup_code'),
-    path('2fa/status/', get_2fa_status, name='get_2fa_status'),
-    path('2fa/regenerate-backup/', regenerate_backup_codes, name='regenerate_backup_codes'),
+    # 2FA - Temporairement désactivé pour résoudre l'erreur pyotp
+    # path('2fa/setup/', setup_2fa, name='setup_2fa'),
+    # path('2fa/verify-setup/', verify_2fa_setup, name='verify_2fa_setup'),
+    # path('2fa/login/', login_with_2fa, name='login_with_2fa'),
+    # path('2fa/backup/', verify_backup_code, name='verify_backup_code'),
+    # path('2fa/status/', get_2fa_status, name='get_2fa_status'),
+    # path('2fa/regenerate-backup/', regenerate_backup_codes, name='regenerate_backup_codes'),
 
     # Inscription publique sécurisée
     path('auth/register/', public_registration, name='public_registration'),
