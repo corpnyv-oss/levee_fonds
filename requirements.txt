@@ -1,65 +1,34 @@
-# Core
-Django>=4.2.0,<5.0.0
-djangorestframework>=3.14.0,<4.0.0
-python-decouple==3.8  # Gestion des variables d'environnement
+# Django et DRF
+Django==4.2.23
+djangorestframework==3.14.0
+djangorestframework-simplejwt==5.3.0
 
-# Database
-dj-database-url>=2.1.0,<3.0.0
-psycopg2-binary>=2.9.9,<3.0.0  # Pour le développement
+# Base de données
+psycopg2-binary==2.9.9
+django-simple-history==3.4.0
 
-# Authentication
-django-axes>=8.0.0,<9.0.0  # Pour la sécurité des connexions (aligné avec la config)
-djangorestframework-simplejwt>=5.3.0,<6.0.0  # Pour l'authentification JWT
-django-two-factor-auth>=1.17.0,<2.0.0
-django-otp>=1.2.0,<2.0.0  # Pour l'authentification à deux facteurs
-qrcode>=7.4.2,<8.0.0
-phonenumbers>=8.13.11,<9.0.0
-django-phonenumber-field>=8.0.0,<9.0.0  # Pour la validation des numéros de téléphone
+# Sécurité
+django-axes==7.1.0
+django-ratelimit==4.1.0
+django-cors-headers==4.3.1
 
-# Security
-django-csp>=4.0.0,<5.0.0
-django-environ>=0.11.2,<1.0.0
-python-dotenv>=1.0.0,<2.0.0
-django-sslserver==0.22  # Pour le développement local avec HTTPS
-django-ratelimit>=4.1.0,<5.0.0  # Pour le throttling/rate limiting
+# 2FA
+pyotp==2.9.0
+qrcode==7.4.2
+Pillow==10.1.0
 
-# API
-drf-yasg>=1.21.7,<2.0.0  # Pour la documentation Swagger
-django-filter>=23.5,<24.0.0
-
-# Media
-Pillow==10.1.0 ; sys_platform != "win32"
-Pillow==10.1.0 ; sys_platform == "win32" and python_version < "3.13"
-Pillow>=10.1.0 ; sys_platform == "win32" and python_version >= "3.13"
-
-# Async & Task Queue
-celery>=5.3.4,<6.0.0
-redis>=4.5.5,<5.0.0
-django-celery-results>=2.5.1,<3.0.0
-django-celery-beat>=2.5.0,<3.0.0  # Pour les tâches planifiées
-
-# Development Tools
-django-extensions>=3.2.3,<4.0.0  # Utilitaires supplémentaires pour Django
-django-crispy-forms>=2.0,<3.0.0  # Pour les formulaires stylisés
-django-widget-tweaks>=1.5.0,<2.0.0  # Pour personnaliser les widgets de formulaire
-django-simple-history>=3.4.0,<4.0.0  # Pour le suivi des modifications
-
-# Deployment
-gunicorn>=21.2.0,<22.0.0
-whitenoise[brotli]>=6.5.0,<7.0.0  # Pour la compression des fichiers statiques
-python-memcached>=1.59,<2.0.0
-brotlipy>=0.7.0,<1.0.0  # Pour la compression Brotli
-certifi==2023.7.22  # Pour la gestion des certificats SSL
-
-# CORS
-django-cors-headers==4.2.0
+# Documentation API
+drf-yasg==1.21.7
 
 # Production
-sentry-sdk==1.40.0  # Pour la surveillance des erreurs
+gunicorn==21.2.0
+whitenoise==6.6.0
 
 # Utilitaires
-python-dateutil==2.8.2
-pytz==2023.3  # Gestion des fuseaux horaires
-requests==2.31.0  # Pour les requêtes HTTP
-boto3==1.26.0  # Pour le stockage S3 (optionnel)
+python-dotenv==1.0.0
+requests==2.31.0
+
+# Tests
+pytest==7.4.3
+pytest-django==4.7.0
 

@@ -31,8 +31,12 @@ from rest_framework_simplejwt.views import (
 )
 from collecte.webhook_views import psp_webhook, test_webhook
 from collecte.views_2fa import (
-    setup_2fa, verify_2fa_setup, login_with_2fa, 
+    setup_2fa, verify_2fa_setup, login_with_2fa,
     verify_backup_code, get_2fa_status, regenerate_backup_codes
+)
+from collecte.views_registration import (
+    public_registration, check_email_availability,
+    validate_password_strength, registration_info
 )
 
 schema_view = get_schema_view(
@@ -76,7 +80,13 @@ urlpatterns = [
     path('2fa/backup/', verify_backup_code, name='verify_backup_code'),
     path('2fa/status/', get_2fa_status, name='get_2fa_status'),
     path('2fa/regenerate-backup/', regenerate_backup_codes, name='regenerate_backup_codes'),
-    
+
+    # Inscription publique sécurisée
+    path('auth/register/', public_registration, name='public_registration'),
+    path('auth/check-email/', check_email_availability, name='check_email_availability'),
+    path('auth/validate-password/', validate_password_strength, name='validate_password_strength'),
+    path('auth/registration-info/', registration_info, name='registration_info'),
+
     # API
     path('api/', include('collecte.urls')),
     # JWT Auth endpoints
