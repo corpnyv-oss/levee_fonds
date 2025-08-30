@@ -366,8 +366,8 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django_otp.middleware.OTPMiddleware',  # Two-factor authentication
-    'two_factor.middleware.threadlocals.ThreadLocals',
+    # 'django_otp.middleware.OTPMiddleware',  # Two-factor authentication - Temporairement désactivé
+    # 'two_factor.middleware.threadlocals.ThreadLocals',  # Temporairement désactivé
     'csp.middleware.CSPMiddleware',
     'axes.middleware.AxesMiddleware',  # Doit être le dernier
     'django.contrib.messages.middleware.MessageMiddleware',
@@ -376,15 +376,17 @@ MIDDLEWARE = [
 ]
 
 # En développement, éviter les accès DB inutiles qui peuvent faire « pend » les requêtes
+# MAIS garder Axes pour la sécurité
 if DEBUG:
-    MIDDLEWARE = [m for m in MIDDLEWARE if m != 'axes.middleware.AxesMiddleware']
+    # Garder Axes pour la sécurité, même en développement
+    pass
 
 ROOT_URLCONF = 'fapag_collecte_backend.urls'
 
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / 'templates'],  # Ajouter le dossier templates
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -423,15 +425,15 @@ DATABASES['default']['OPTIONS'] = {
     'client_encoding': 'UTF8',
 }
 
-# Login URL
-LOGIN_URL = 'two_factor:login'
-LOGIN_REDIRECT_URL = 'two_factor:profile'
-TWO_FACTOR_PATCH_ADMIN = True
-TWO_FACTOR_REMEMBER_COOKIE_AGE = 60 * 60 * 24 * 30  # 30 jours
-TWO_FACTOR_CALL_GATEWAY = 'two_factor.gateways.fake.Fake'
-TWO_FACTOR_SMS_GATEWAY = 'two_factor.gateways.twilio.gateway.Twilio'
-TWO_FACTOR_WEBAUTHN_RP_NAME = 'FAPAG Collecte'
-TWO_FACTOR_WEBAUTHN_RP_ID = ENV.get('TWO_FACTOR_WEBAUTHN_RP_ID', 'localhost')
+# Login URL - Temporairement désactivé pour corriger les erreurs
+# LOGIN_URL = 'two_factor:login'
+# LOGIN_REDIRECT_URL = 'two_factor:profile'
+# TWO_FACTOR_PATCH_ADMIN = True
+# TWO_FACTOR_REMEMBER_COOKIE_AGE = 60 * 60 * 24 * 30  # 30 jours
+# TWO_FACTOR_CALL_GATEWAY = 'two_factor.gateways.fake.Fake'
+# TWO_FACTOR_SMS_GATEWAY = 'two_factor.gateways.twilio.gateway.Twilio'
+# TWO_FACTOR_WEBAUTHN_RP_NAME = 'FAPAG Collecte'
+# TWO_FACTOR_WEBAUTHN_RP_ID = ENV.get('TWO_FACTOR_WEBAUTHN_RP_ID', 'localhost')
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/

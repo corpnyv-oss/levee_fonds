@@ -57,7 +57,8 @@ urlpatterns = [
     
     # Administration
     path('admin/', admin.site.urls),
-    path('', include('fapag_collecte_backend.two_factor_urls', namespace='two_factor')),
+    # 2FA - Temporairement désactivé pour corriger les erreurs
+    # path('account/', include('two_factor.urls')),
     
     # API
     path('api/', include('collecte.urls')),
